@@ -4,6 +4,8 @@
   7 bytes "DRP\0\0\0\0"
 #### Offset 0x0007
   256 bytes "Patch name\0"
+#### Offset 0x0107
+  256 bytes "Author\0"
 #### Offset 0x0207
   2048 bytes "Comment\0" (0x0D 0x0A linefeed)
 #### Offset 0xA07
