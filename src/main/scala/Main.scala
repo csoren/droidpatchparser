@@ -2,6 +2,7 @@ import java.nio.file._
 import java.nio.file.attribute.BasicFileAttributes
 
 import droid.Patch
+import play.api.libs.json.{JsArray, Json}
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -19,8 +20,12 @@ object Main {
   }
 
   def main(args: Array[String]): Unit = {
+    import json.Serializers._
+
     val files = getFilesRecursively(Paths.get("DroidEdit"), ".drp")
-    files.map(Patch.load).foreach(System.out.println)
+    val jsarray = Json.toJson(files.flatMap(Patch.load).sortBy(v => v.name))
+
+    System.out.println(Json.prettyPrint(jsarray))
   }
 
 }
