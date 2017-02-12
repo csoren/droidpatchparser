@@ -2,6 +2,7 @@ package droid
 
 import java.io.RandomAccessFile
 import java.nio.channels.FileChannel
+import java.nio.charset.Charset
 import java.nio.file.Path
 import java.nio.{ByteBuffer, ByteOrder}
 
@@ -107,6 +108,8 @@ object Patch {
 
   type MatrixControlledWaveform = Either[MatrixController, WaveformDistortion]
 
+  private val windowsCharset = Charset.forName("Windows-1252")
+
   def waveformValue(matrixController: Int, distortion: Distortion): MatrixControlledWaveform =
     if (matrixController <= 7)
       Right(WaveformDistortion(Waveform(matrixController), distortion))
@@ -137,8 +140,7 @@ object Patch {
   private def getAscii(buffer: ByteBuffer, chars: Int): String = {
     val array = new Array[Byte](chars)
     buffer.get(array)
-    val v = array.takeWhile(_ != 0).map(b => b.toChar).mkString
-    v
+    new String(array.takeWhile(_ != 0), windowsCharset)
   }
 
   private def filterComment(comment: String): List[String] =
