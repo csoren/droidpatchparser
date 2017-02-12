@@ -1,6 +1,8 @@
 import java.nio.file._
 import java.nio.file.attribute.BasicFileAttributes
 
+import droid.Patch
+
 import scala.collection.mutable.ArrayBuffer
 
 object Main {
@@ -18,7 +20,7 @@ object Main {
 
   def main(args: Array[String]): Unit = {
     val files = getFilesRecursively(Paths.get("DroidEdit"), ".drp")
-    files.foreach(System.out.println)
+    files.map(Patch.load).foreach(System.out.println)
   }
 
 }
