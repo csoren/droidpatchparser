@@ -102,7 +102,6 @@ object TuningMode extends Enumeration {
 object Patch {
 
   import droid.MatrixController.MatrixController
-  import droid.Waveform.Waveform
 
   type MatrixControlledValue = Either[MatrixController, Int]
 
@@ -126,8 +125,14 @@ object Patch {
       case _ => str
     }
 
+  private def removeQuotes(str: String): String =
+    if (str.startsWith("\"") && str.endsWith("\""))
+      str.substring(1, str.length - 1)
+    else
+      str
+
   private def filterName(str: String): String =
-    upperCaseFirst(str).map(ch => if (ch == '_') ' ' else ch)
+    upperCaseFirst(removeQuotes(str)).map(ch => if (ch == '_') ' ' else ch)
 
   private def getAscii(buffer: ByteBuffer, chars: Int): String = {
     val array = new Array[Byte](chars)
@@ -141,15 +146,17 @@ object Patch {
 
   private def splitName(name: String): (String, List[String]) = {
     val optionalNameAndClass =
-      if (name.endsWith(")")) {
-        name.lastIndexOf("(") match {
-          case -1 => None
-          case parensIndex =>
-            val (newName, classes) = splitName(name.substring(0, parensIndex).trim)
-            Some(filterName(newName), upperCaseFirst(name.substring(parensIndex + 1, name.length - 1).trim) :: classes)
-        }
-      } else {
-        None
+      name.indexOf('(') match {
+        case -1 => None
+        case openIndex =>
+          name.indexOf(')', openIndex) match {
+            case -1 => None
+            case closeIndex =>
+              val tag = name.substring(openIndex + 1, closeIndex).trim
+              val nameMinusTag = name.substring(0, openIndex).trim + name.substring(closeIndex + 1).trim
+              val (newName, classes) = splitName(nameMinusTag)
+              Some(filterName(newName), upperCaseFirst(tag) :: classes)
+          }
       }
 
     optionalNameAndClass.getOrElse((name, Nil))
