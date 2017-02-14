@@ -28,7 +28,7 @@ case class Envelope(attack: Int,
 case class Patch(name: String,
                  tags: List[String],
                  author: String,
-                 comment: List[String],
+                 comment: String,
                  dco1: DCO,
                  dco2: DCO,
                  env1: Envelope,
@@ -72,8 +72,8 @@ object Waveform extends Enumeration {
   val Triangle = Value(3)
   val Noise = Value(4)
   val `Sample&Hold` = Value(5)
-  val Dig = Value(6)
-  val Sil = Value(7)
+  val Digital = Value(6)
+  val Silence = Value(7)
 }
 
 
@@ -123,10 +123,10 @@ object Patch {
       Left(MatrixController(matrixController - 1))
 
   private def upperCaseFirst(str: String): String =
-    str.toList match {
-      case head :: tail if head.isLower => (head.toUpper :: tail).mkString
-      case _ => str
-    }
+    if (str.length > 0 && str.charAt(0).isLower)
+      str.charAt(0).toUpper + str.substring(1)
+    else
+      str
 
   private def removeQuotes(str: String): String =
     if (str.startsWith("\"") && str.endsWith("\""))
@@ -143,8 +143,17 @@ object Patch {
     new String(array.takeWhile(_ != 0), windowsCharset)
   }
 
-  private def filterComment(comment: String): List[String] =
-    if (comment == "2000 chars max") Nil else comment.trim.filter(_ != '\r').split('\n').toList.map(_.trim)
+  private def filterComment(comment: String): String =
+    if (comment == "2000 chars max")
+      ""
+    else
+      upperCaseFirst(comment.trim
+        .filter(_ != '\r')
+        .split('\n')
+        .map(_.trim)
+        .mkString("\n")
+      )
+
 
   private def splitName(name: String): (String, List[String]) = {
     val optionalNameAndClass =
