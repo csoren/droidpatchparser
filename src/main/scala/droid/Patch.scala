@@ -26,7 +26,7 @@ case class Envelope(attack: Int,
                     offset: MatrixControlledValue)
 
 case class Patch(name: String,
-                 tags: List[String],
+                 tags: Seq[String],
                  author: String,
                  comment: String,
                  dco1: DCO,
@@ -154,23 +154,59 @@ object Patch {
         .mkString("\n")
       )
 
+  private val cleanClassName = Map(
+    "TechBass" -> List("Tech", "Bass"),
+    "SynthBass" -> List("Synth", "Bass"),
+    "Synths" -> List("Synth"),
+    "Seq" -> List("Sequence"),
+    "Perc" -> List("Percussion"),
+    "Prec" -> List("Percussion"),
+    "Synthbass" -> List("Synth", "Bass"),
+    "TechSynth" -> List("Tech", "Synth"),
+    "BassSynth" -> List("Bass", "Synth"),
+    "LegatoCycle" -> List("Legato", "Cycle"),
+    "Drum" -> List("Percussion"),
+    "Efffect" -> List("Effect"),
+    "Effects" -> List("Effect"),
+    "SFX" -> List("Effect"),
+    "DanceBass" -> List("Dance", "Bass"),
+    "SynthLead" -> List("Synth", "Lead"),
+    "Techsynth" -> List("Tech", "Synth"),
+    "Synthwave" -> List("Synth"),
+    "C4" -> List("KeyC4"),
+    "F5" -> List("KeyF5"),
+    "Sound" -> Nil
+  )
 
-  private def splitName(name: String): (String, List[String]) = {
-    val optionalNameAndClass =
-      name.indexOf('(') match {
-        case -1 => None
-        case openIndex =>
-          name.indexOf(')', openIndex) match {
-            case -1 => None
-            case closeIndex =>
-              val tag = name.substring(openIndex + 1, closeIndex).trim
-              val nameMinusTag = name.substring(0, openIndex).trim + name.substring(closeIndex + 1).trim
-              val (newName, classes) = splitName(nameMinusTag)
-              Some(filterName(newName), upperCaseFirst(tag) :: classes)
-          }
-      }
+  private def filterClasses(classes: Seq[String]): Seq[String] =
+    classes
+      .filter(!_.toLowerCase.contains("comment"))
+      .map(_.replace('_', '-'))
+      .flatMap(_.split('-'))
+      .map(upperCaseFirst)
+      .flatMap(v => cleanClassName.getOrElse(v, List(v)))
+  
+  private def extractClasses(name: String): (String, Seq[String]) = {
+    def splitName(name: String): (String, List[String]) = {
+      val optionalNameAndClass =
+        name.indexOf('(') match {
+          case -1 => None
+          case openIndex =>
+            name.indexOf(')', openIndex) match {
+              case -1 => None
+              case closeIndex =>
+                val tag = name.substring(openIndex + 1, closeIndex).trim
+                val nameMinusTag = name.substring(0, openIndex).trim + name.substring(closeIndex + 1).trim
+                val (newName, classes) = splitName(nameMinusTag)
+                Some(filterName(newName), upperCaseFirst(tag) :: classes)
+            }
+        }
 
-    optionalNameAndClass.getOrElse((name, Nil))
+      optionalNameAndClass.getOrElse((name, Nil))
+    }
+
+    val (newName, classes) = splitName(name)
+    (newName, filterClasses(classes))
   }
 
 
@@ -180,7 +216,7 @@ object Patch {
     map.order(ByteOrder.LITTLE_ENDIAN)
 
     if (getAscii(map, 3) == "DRP" && map.getInt() == 0) {
-      val (name, clazz) = splitName(getAscii(map, 256).trim)
+      val (name, clazz) = extractClasses(getAscii(map, 256).trim)
       val author = getAscii(map, 256)
       val comment = filterComment(getAscii(map, 2048))
 

@@ -23,9 +23,11 @@ object Main {
     import json.Serializers._
 
     val files = getFilesRecursively(Paths.get("DroidEdit"), ".drp")
-    val jsarray = Json.toJson(files.flatMap(Patch.load).sortBy(v => v.name))
+    val patches = files.flatMap(Patch.load).sortBy(v => v.name)
 
-    System.out.println(Json.prettyPrint(jsarray))
+    System.out.println(Json.prettyPrint(Json.toJson(patches)))
+
+    System.out.println(patches.flatMap(v => v.tags).toSet)
   }
 
 }
