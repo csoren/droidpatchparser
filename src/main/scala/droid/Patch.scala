@@ -80,10 +80,10 @@ object Waveform extends Enumeration {
 object Distortion extends Enumeration {
   type Distortion = Value
 
-  val Clp = Value(0)
-  val Mir = Value(1)
-  val Zsn = Value(2)
-  val Wrp = Value(3)
+  val Clip = Value(0)
+  val Mirror = Value(1)
+  val ZeroSnap = Value(2)
+  val Wrap = Value(3)
 }
 
 
