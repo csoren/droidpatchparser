@@ -27,7 +27,7 @@ object Main {
 
     System.out.println(Json.prettyPrint(Json.toJson(patches)))
 
-    System.out.println(patches.flatMap(v => v.tags).toSet)
+    System.out.println(patches.filter(_.tags.length >= 2).map(_.tags.mkString("-")).toSet)
   }
 
 }

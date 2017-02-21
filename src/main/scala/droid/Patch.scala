@@ -135,7 +135,14 @@ object Patch {
       str
 
   private def filterName(str: String): String =
-    upperCaseFirst(removeQuotes(str)).map(ch => if (ch == '_') ' ' else ch)
+    upperCaseFirst(removeQuotes(str))
+      .map(ch => if (ch == '_') ' ' else ch)
+      .replace("Cheasy", "Cheesy")
+      .replace("Popbass", "Pop Bass")
+      .replace("Snareroll", "Snare Roll")
+      .replace("Drunked", "Drunken")
+      .replace("Standart", "Standard")
+      .replace("Winther", "Winter")
 
   private def getAscii(buffer: ByteBuffer, chars: Int): String = {
     val array = new Array[Byte](chars)
